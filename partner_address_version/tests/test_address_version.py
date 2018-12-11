@@ -5,6 +5,7 @@
 from odoo.tests.common import TransactionCase
 from collections import OrderedDict
 import hashlib
+from odoo.exceptions import UserError
 
 
 class TestAddressVersion(TransactionCase):
@@ -28,7 +29,7 @@ class TestAddressVersion(TransactionCase):
         self.assertEqual(test_hash, self.partner.get_version_hash())
 
     def test_create_version_partner(self):
-        new_partner = self.partner.get_or_create_address_version()
+        new_partner = self.partner.get_address_version()
         self.assertEqual(new_partner.active, False)
         self.assertNotEqual(new_partner.id, self.partner.id)
         self.assertEqual(new_partner.parent_id.id, self.partner.id)
@@ -36,5 +37,10 @@ class TestAddressVersion(TransactionCase):
     def test_get_version_hash(self):
         self.partner.version_hash = self.partner.get_version_hash()
         self.partner.active = False
-        version_partner = self.partner.get_or_create_address_version()
+        version_partner = self.partner.get_address_version()
         self.assertEqual(version_partner.id, self.partner.id)
+
+    def test_write_versioned_partner(self):
+        new_partner = self.partner.get_address_version()
+        with self.assertRaises(UserError):
+            new_partner.street = 'New street'

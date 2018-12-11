@@ -2,7 +2,7 @@
 # Copyright 2018 Akretion - Benoît Guillot
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import fields, models, api
+from odoo import fields, models, api, exceptions, _
 import hashlib
 from collections import OrderedDict
 
@@ -14,7 +14,11 @@ class ResPartner(models.Model):
     date_version = fields.Datetime(string='Date version', readonly=True)
 
     @api.multi
-    def get_or_create_address_version(self):
+    def get_address_version(self):
+        """
+        Get a versioned partner corresponding to the partner fields.
+        If no versioned partner exists, create a new one.
+        """
         self.ensure_one()
         version_hash = self.get_version_hash()
         versioned_partner = self.with_context(active_test=False).search(
@@ -41,3 +45,16 @@ class ResPartner(models.Model):
                 version[field] = self[field]
         version_hash = hashlib.md5(str(version)).hexdigest()
         return version_hash
+
+    @api.multi
+    def write(self, vals):
+        version_fields = self.get_version_fields()
+        written_versioned_fields = set(vals.keys()).intersection(
+            set(version_fields)
+        )
+        for partner in self:
+            if partner.version_hash and written_versioned_fields:
+                raise exceptions.UserError(_(
+                    "You can't modify a versioned field %s on the versioned "
+                    "partner %s.") % (version_fields, partner.name))
+        return super(ResPartner, self).write(vals)
