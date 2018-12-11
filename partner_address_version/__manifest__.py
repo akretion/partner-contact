@@ -13,6 +13,4 @@
     'depends': [
         'base',
     ],
-    'data': [
-    ],
 }
