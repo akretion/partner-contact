@@ -1,0 +1,1 @@
+This module allows to manage versions for partner addresses.
