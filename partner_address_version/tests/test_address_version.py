@@ -2,27 +2,30 @@
 # Copyright 2018 Akretion - Benoît Guillot
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo.tests.common import TransactionCase
+from odoo.tests import SavepointCase
 from collections import OrderedDict
 import hashlib
 from odoo.exceptions import UserError
 
 
-class TestAddressVersion(TransactionCase):
+class TestAddressVersion(SavepointCase):
 
-    def setUp(self):
-        super(TestAddressVersion, self).setUp()
-        self.partner_vals = OrderedDict([
+    @classmethod
+    def setUpClass(cls):
+        super(TestAddressVersion, cls).setUpClass()
+        cls.partner_vals = OrderedDict([
             ('name', u'Name'),
             ('street', u'Street'),
             ('street2', u'Street2'),
             ('zip', u'Zip'),
             ('city', u'City'),
-            ('country_id', self.env.ref('base.fr'))
+            ('country_id', cls.env.ref('base.fr'))
         ])
-        create_vals = self.partner_vals.copy()
-        create_vals['country_id'] = self.env.ref('base.fr').id
-        self.partner = self.env['res.partner'].create(create_vals)
+        create_vals = cls.partner_vals.copy()
+        create_vals['country_id'] = cls.env.ref('base.fr').id
+        cls.partner = cls.env['res.partner'].create(create_vals)
+        cls.partner_vals.update({'parent_id': cls.partner.id})
+        cls.partner_2 = cls.env['res.partner'].create(create_vals)
 
     def test_hash(self):
         test_hash = hashlib.md5(str(self.partner_vals)).hexdigest()
@@ -44,3 +47,16 @@ class TestAddressVersion(TransactionCase):
         new_partner = self.partner.get_address_version()
         with self.assertRaises(UserError):
             new_partner.street = 'New street'
+
+    def test_same_address_different_parent(self):
+        new_partner = self.partner.get_address_version()
+        new_partner_2 = self.partner_2.get_address_version()
+        for field in self.partner.get_version_fields():
+            if field == 'parent_id':
+                continue
+            self.assertEqual(new_partner[field], new_partner_2[field])
+        self.assertNotEqual(new_partner.id, new_partner_2.id)
+        self.assertNotEqual(
+            new_partner.version_hash,
+            new_partner_2.version_hash
+        )

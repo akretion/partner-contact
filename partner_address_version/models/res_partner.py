@@ -35,13 +35,19 @@ class ResPartner(models.Model):
         return versioned_partner
 
     def get_version_fields(self):
-        return ['name', 'street', 'street2', 'zip', 'city', 'country_id']
+        return [
+            'name', 'street', 'street2', 'zip', 'city', 'country_id',
+            'parent_id'
+        ]
 
     def get_version_hash(self):
         version_fields = self.get_version_fields()
         version = OrderedDict()
         for field in version_fields:
-            if self[field]:
+            if field == 'parent_id':
+                parent_id = self.parent_id and self.parent_id.id or self.id
+                version[field] = parent_id
+            elif self[field]:
                 version[field] = self[field]
         version_hash = hashlib.md5(str(version)).hexdigest()
         return version_hash
@@ -49,11 +55,11 @@ class ResPartner(models.Model):
     @api.multi
     def write(self, vals):
         version_fields = self.get_version_fields()
-        written_versioned_fields = set(vals.keys()).intersection(
-            set(version_fields)
+        has_written_versioned_fields = any(
+            (f in version_fields) for f in vals.keys()
         )
         for partner in self:
-            if partner.version_hash and written_versioned_fields:
+            if partner.version_hash and has_written_versioned_fields:
                 raise exceptions.UserError(_(
                     "You can't modify a versioned field %s on the versioned "
                     "partner %s.") % (version_fields, partner.name))
