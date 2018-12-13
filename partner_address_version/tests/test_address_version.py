@@ -24,8 +24,8 @@ class TestAddressVersion(SavepointCase):
         create_vals = cls.partner_vals.copy()
         create_vals['country_id'] = cls.env.ref('base.fr').id
         cls.partner = cls.env['res.partner'].create(create_vals)
-        cls.partner_vals.update({'parent_id': cls.partner.id})
         cls.partner_2 = cls.env['res.partner'].create(create_vals)
+        cls.partner_vals.update({'parent_id': cls.partner.id})
 
     def test_hash(self):
         test_hash = hashlib.md5(str(self.partner_vals)).hexdigest()
