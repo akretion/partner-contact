@@ -3,7 +3,7 @@
 {
     "name": "Partner Company Contact",
     "summary": "Manage company on contact/address if different from main partner",
-    "version": "14.0.1.0.1",
+    "version": "16.0.1.0.1",
     "author": "Akretion,Odoo Community Association (OCA)",
     "license": "AGPL-3",
     "category": "Extra Tools",
