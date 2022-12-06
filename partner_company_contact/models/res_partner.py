@@ -1,16 +1,21 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
-from odoo import api, fields, models, exceptions, _
+from odoo import api, fields, models
 
 
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
-    use_parent_company_name = fields.Boolean("User Parent Company",
-        help="If checked, the company of this contact will be the same as the parent partner")
-    display_use_parent_company_name = fields.Boolean(compute="_compute_display_use_parent_company_name")
-    company = fields.Char(string="Contact Company",
-        compute="_compute_company", store=True, readonly=False)
+    use_parent_company_name = fields.Boolean(
+        "User Parent Company",
+        help="If checked, the company of this contact will be the same as the parent partner",
+    )
+    display_use_parent_company_name = fields.Boolean(
+        compute="_compute_display_use_parent_company_name"
+    )
+    company = fields.Char(
+        string="Contact Company", compute="_compute_company", store=True, readonly=False
+    )
 
     @api.depends("parent_id.is_company")
     def _compute_display_use_parent_company_name(self):
