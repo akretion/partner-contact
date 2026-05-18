@@ -109,5 +109,6 @@ class ResPartner(models.Model):
             "version_hash": version_hash,
             "parent_id": self.parent_id.id if self.parent_id else self.id,
             "date_version": fields.Datetime.now(),
+            "company_type": "person",  # force person to have the same commercial partner
         }
         return self.copy(default=default)
